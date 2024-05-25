@@ -301,6 +301,13 @@ def GhostsPossibleMove(x, y):
     if TBL[x-1][y] != 1: L.append((-1, 0))
     return L
 
+def DetectorDifferentPath(moves):
+    if len(moves) == 2:
+        dx1, dy1 = moves[0]
+        dx2, dy2 = moves[1]
+        if (dx1 == -dx2 and dy1 == 0 and dy2 == 0) or (dy1 == -dy2 and dx1 == 0 and dx2 == 0):
+            return True
+    return False
    
 
 # Widget pour afficher le score
@@ -396,13 +403,21 @@ def IAGhosts():
     for F in Ghosts:
         x, y, color, choix_direction = F
         possible_moves = GhostsPossibleMove(x, y)
-        
-        # Si le fantôme peut continuer dans sa direction courante, il le fait
-        if choix_direction in possible_moves:
-            F[0] += choix_direction[0]
-            F[1] += choix_direction[1]
+
+        # Détecter si le fantôme est dans un couloir
+        if DetectorDifferentPath(possible_moves):
+            # Si le fantôme peut continuer dans sa direction courante, il le fait
+            if choix_direction in possible_moves:
+                F[0] += choix_direction[0]
+                F[1] += choix_direction[1]
+            else:
+                # Si la direction courante n'est pas possible, choisir une nouvelle direction parmi les mouvements possibles
+                new_direction = random.choice(possible_moves)
+                F[0] += new_direction[0]
+                F[1] += new_direction[1]
+                F[3] = new_direction
         else:
-            # Sinon, il choisit une nouvelle direction aléatoirement parmi les directions possibles
+            # Si le fantôme est à un embranchement, choisir une nouvelle direction aléatoire
             new_direction = random.choice(possible_moves)
             F[0] += new_direction[0]
             F[1] += new_direction[1]
