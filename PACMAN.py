@@ -92,7 +92,6 @@ def SetInfo2(x,y,info):
    if x >= LTBL : return
    if y >= LTBL : return
    TBL2[x][y] = info
-   
 
 
 ##############################################################################
@@ -331,38 +330,43 @@ def init_distance_map():
 
 def IAPacman():
     global PacManPos, Ghosts, GUM, SCORE
-    distance_map = compute_distance_map()  # Calcule la carte des distances
+    pacgum_distance_map = compute_distance_map()  # Carte des distances aux Pac-gommes
+    ghost_distance_map = compute_ghost_distance_map()  # Carte des distances aux fantômes
 
-    # Trouver le mouvement optimal en fonction de la carte des distances
-    x, y = PacManPos  # Position actuelle de Pac-Man
-    neighbors = [(x-1, y), (x+1, y), (x, y-1), (x, y+1)]  # Liste des voisins (haut, bas, gauche, droite)
-    next_move = min(neighbors, key=lambda pos: distance_map[pos[0]][pos[1]] if 0 <= pos[0] < LARGEUR and 0 <= pos[1] < HAUTEUR else np.inf)  # Choisit le voisin avec la plus petite distance
+    # Afficher les distances aux fantômes
+    for x in range(LARGEUR):
+        for y in range(HAUTEUR):
+            distance = ghost_distance_map[x][y]
+            if distance == np.inf:
+                SetInfo2(x, y, "")
+            else:
+                SetInfo2(x, y, distance)
+    
+    x, y = PacManPos
+    ghost_distance = ghost_distance_map[x][y]
+    possible_moves = PacManPossibleMove()
 
-    # Vérifier la position suivante
-    next_x, next_y = next_move  # Coordonnées de la prochaine position de Pac-Man
-    if GUM[next_x][next_y] == 1:  # Si la prochaine position contient une Pac-gomme
-        GUM[next_x][next_y] = 0  # Supprime la Pac-gomme de la liste
-        SCORE += 100  # Augmente le score de 100 points
-        score_label.config(text=f"Score: {SCORE}")  # Met à jour le texte du widget Label avec le nouveau score
+    if ghost_distance > 3:
+        # Mode recherche des Pac-gommes
+        next_move = min(possible_moves, key=lambda pos: pacgum_distance_map[PacManPos[0] + pos[0]][PacManPos[1] + pos[1]])
+    else:
+        # Mode fuite des fantômes
+        next_move = max(possible_moves, key=lambda pos: ghost_distance_map[PacManPos[0] + pos[0]][PacManPos[1] + pos[1]])
+    
+    next_x, next_y = PacManPos[0] + next_move[0], PacManPos[1] + next_move[1]
 
-    PacManPos = [next_x, next_y]  # Met à jour la position de Pac-Man
+    if GUM[next_x][next_y] == 1:
+        GUM[next_x][next_y] = 0
+        SCORE += 100
+        score_label.config(text=f"Score: {SCORE}")
+    
+    PacManPos = [next_x, next_y]
 
-    # Détection de collision avec les fantômes
     for F in Ghosts:
         if [next_x, next_y] == [F[0], F[1]]:
             print("Collision détectée! Le jeu est terminé.")
-            # Arrête le jeu ou réinitialise la position
             return
 
-    # Affiche la carte des distances pour chaque case (optionnel)
-    for x in range(LARGEUR):
-        for y in range(HAUTEUR):
-            info = distance_map[x][y]
-            if info == np.inf:
-                info = "+∞"
-            elif info == LARGEUR * HAUTEUR:
-                info = ""
-            SetInfo1(x, y, info)  # Utilise la fonction SetInfo1 pour afficher les distances
 
 
 
@@ -424,27 +428,67 @@ def IAGhosts():
             F[3] = new_direction
 
         # Détection de collision avec Pac-Man
-        if [F[0], F[1]] == PacManPos:
-            print("Collision détectée! Le jeu est terminé.")
-            # Arrête le jeu ou réinitialise la position
-            break
-
       
-  
- 
+def detectCollisionIA():
+   for F in Ghosts:
+      if [F[0],F[1]] == PacManPos:
+         print("Collision détectée! Le jeu est terminé.")
+         return F
+   return None
+
+def init_ghost_distance_map():
+    distance_map = np.full(TBL.shape, np.inf)
+    
+    for F in Ghosts:
+        x, y = F[:2]
+        distance_map[x][y] = 0
+    
+    return distance_map
+
+def update_ghost_distance_map(distance_map):
+    updated = False
+    
+    for x in range(LARGEUR):
+        for y in range(HAUTEUR):
+            if TBL[x][y] != 1:
+                current_distance = distance_map[x][y]
+                
+                neighbors = [(x-1, y), (x+1, y), (x, y-1), (x, y+1)]
+                min_distance = min([distance_map[nx][ny] + 1 for nx, ny in neighbors if 0 <= nx < LARGEUR and 0 <= ny < HAUTEUR and distance_map[nx][ny] != np.inf], default=np.inf)
+                
+                if min_distance < current_distance:
+                    distance_map[x][y] = min_distance
+                    updated = True
+    
+    return updated
+
+def compute_ghost_distance_map():
+    distance_map = init_ghost_distance_map()
+    while update_ghost_distance_map(distance_map):
+        pass
+    return distance_map
 
  
 #  Boucle principale de votre jeu appelée toutes les 500ms
 
+
+# Flag pour la gestion de la fin du jeu
+LOST_FLAG = False
+
 iteration = 0
 def PlayOneTurn():
-   global iteration
+   global iteration, LOST_FLAG
    
-   if not PAUSE_FLAG : 
+   if not PAUSE_FLAG and not LOST_FLAG: 
       iteration += 1
       if iteration % 2 == 0 :   IAPacman()
       else:                     IAGhosts()
    
+   # En cas de collision avec un fantôme...
+   ghost = detectCollisionIA()
+   if(ghost != None):
+    LOST_FLAG = True 
+
    Affiche(PacmanColor = "yellow", message = "message")  
  
  
@@ -452,10 +496,3 @@ def PlayOneTurn():
 #  demarrage de la fenetre - ne pas toucher
 
 Window.mainloop()
-
- 
-   
-   
-    
-   
-   
