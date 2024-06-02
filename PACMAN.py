@@ -33,7 +33,7 @@ TBL = CreateArray([
         [1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1],
         [1,0,1,1,0,1,0,1,1,1,1,1,1,0,1,0,1,1,0,1],
         [1,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,1],
-        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] ]);
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1] ])
 # attention, on utilise TBL[x][y] 
         
 HAUTEUR = TBL.shape [1]      
@@ -301,7 +301,7 @@ def GhostsPossibleMove(x,y):
 
 # Widget pour afficher le score
 score_label = tk.Label(Frame1, text="Score : 0", font=("Arial", 16), foreground="yellow", background="black")
-score_label.place(x=20, y=20)
+score_label.place(x=20, y=475)
 
 def IAPacman():
    global PacManPos, Ghosts, GUM, SCORE
