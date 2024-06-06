@@ -356,7 +356,7 @@ def PlayOneTurn():
    
    Affiche(PacmanColor = "yellow", message = "message")  
  
- 
+
 ###########################################:
 #  demarrage de la fenetre - ne pas toucher
 
