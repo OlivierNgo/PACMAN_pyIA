@@ -342,9 +342,9 @@ def IAPacman():
             else:
                 SetInfo2(x, y, distance)
     
-    x, y = PacManPos
-    ghost_distance = ghost_distance_map[x][y]
-    possible_moves = PacManPossibleMove()
+    x, y = PacManPos # Recupere la position actuelle de PacMan
+    ghost_distance = ghost_distance_map[x][y] # Recupere la position de PacMan pour avoir la distance entre PacMan et le ghost
+    possible_moves = PacManPossibleMove() # Direction que PacMan peut se déplacer a partir de sa position et des contraintes
 
     if ghost_distance > 3:
         # Mode recherche des Pac-gommes
@@ -437,35 +437,50 @@ def detectCollisionIA():
    return None
 
 def init_ghost_distance_map():
-    distance_map = np.full(TBL.shape, np.inf)
+    distance_map = np.full(TBL.shape, np.inf) # Crée une carte de distance initialisée avec des valeurs infinies, par défaut chaque case est initialise a une valeur infinie
     
+    # Parcours chaque fantôme dans la liste Ghosts
     for F in Ghosts:
-        x, y = F[:2]
-        distance_map[x][y] = 0
+        x, y = F[:2] # Récupère les coordonnées x et y du fantôme
+        distance_map[x][y] = 0 # Définit la distance de la position du fantôme à elle-même comme étant 0 car un fantome a une distance null a lui-même
     
     return distance_map
 
 def update_ghost_distance_map(distance_map):
+    # Initialise un flag 'updated' à False pour vérifier si des mises à jour ont été effectuées
     updated = False
     
+    # Parcourt chaque case du tableau
     for x in range(LARGEUR):
         for y in range(HAUTEUR):
+            # Vérifie si la case n'est pas un mur
             if TBL[x][y] != 1:
+                # Récupère la distance actuelle de la case
                 current_distance = distance_map[x][y]
                 
+                # Détermine les coordonnées des voisins de la case actuelle
                 neighbors = [(x-1, y), (x+1, y), (x, y-1), (x, y+1)]
+
+                # Calcule la distance minimale parmi les voisins accessibles
                 min_distance = min([distance_map[nx][ny] + 1 for nx, ny in neighbors if 0 <= nx < LARGEUR and 0 <= ny < HAUTEUR and distance_map[nx][ny] != np.inf], default=np.inf)
                 
+                # Si une distance plus courte est trouvée, met à jour la distance de la case et change le flag 'updated' à True
                 if min_distance < current_distance:
                     distance_map[x][y] = min_distance
                     updated = True
     
+    # Retourne le flag 'updated' pour indiquer si des mises à jour ont été effectuées
     return updated
 
 def compute_ghost_distance_map():
+    # Initialise la carte des distances des fantômes avec des distances infinies partout sauf aux positions des fantômes
     distance_map = init_ghost_distance_map()
+
+    # Met à jour la carte des distances des fantômes jusqu'à ce qu'aucune mise à jour ne soit effectuée
     while update_ghost_distance_map(distance_map):
         pass
+
+    # Retourne la carte des distances finale
     return distance_map
 
  
