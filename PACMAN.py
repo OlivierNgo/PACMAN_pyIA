@@ -411,16 +411,6 @@ def IAPacman():
 
     PacManPos = [next_x, next_y]
 
-    for F in Ghosts:
-        if [next_x, next_y] == [F[0], F[1]]:
-            if chase_mode:
-                F[0], F[1], F[3] = LARGEUR // 2, HAUTEUR // 2, (0, 1)
-                SCORE += 2000
-                score_label.config(text=f"Score: {SCORE}")
-            else:
-                print("Collision détectée! Le jeu est terminé.")
-                return
-
     if chase_timer > 0:
         chase_timer -= 1
     else:
@@ -452,6 +442,9 @@ def IAGhosts():
             F[1] += new_direction[1]
             F[3] = new_direction
 
+def detectCollisionIA():
+    global SCORE, chase_mode
+    for F in Ghosts:
         if [F[0], F[1]] == PacManPos and not chase_mode:
             print("Collision détectée! Le jeu est terminé.")
             return F
@@ -459,12 +452,6 @@ def IAGhosts():
             F[0], F[1] = LARGEUR // 2, HAUTEUR // 2
             SCORE += 2000
             score_label.config(text=f"Score: {SCORE}")
-
-def detectCollisionIA():
-    for F in Ghosts:
-        if [F[0], F[1]] == PacManPos:
-            print("Collision détectée! Le jeu est terminé.")
-            return F
     return None
 
 def init_ghost_distance_map():
